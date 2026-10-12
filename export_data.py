@@ -10,7 +10,16 @@ def read(table,fields,filters):
     for offset in range(0,10000,1000):
         params={"select":fields,"measured_at":"gte."+SINCE,"order":"measured_at.asc","limit":"1000","offset":str(offset),**filters}
         r=requests.get(BASE+"/rest/v1/"+table,headers=HEAD,params=params,timeout=30)
-        if not r.ok: raise RuntimeError(f"Export {table} failed with HTTP {r.status_code}")
+        if not r.ok:
+            try:
+                err = r.json()
+                code = str(err.get("code", "onbekend")) if isinstance(err, dict) else "onbekend"
+                message = str(err.get("message", "geen bericht")) if isinstance(err, dict) else "geen bericht"
+                print(f"Supabase foutcode: {code[:120]}", flush=True)
+                print(f"Supabase melding: {message[:240]}", flush=True)
+            except ValueError:
+                print("Supabase gaf geen JSON-foutmelding.", flush=True)
+            raise RuntimeError(f"Export {table} failed with HTTP {r.status_code}")
         batch=r.json()
         output.extend(batch)
         if len(batch)<1000:break
