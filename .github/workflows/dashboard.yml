@@ -1,5 +1,11 @@
 name: Energiedashboard publiceren
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'export_data.py'
+      - '.github/workflows/dashboard.yml'
   workflow_dispatch:
   schedule:
     - cron: '7,22,37,52 * * * *'
